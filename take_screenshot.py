@@ -3,13 +3,18 @@
 import sys
 import hashlib
 import time
-
-from config import SCREENSHOT_DIR
+import config
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.webdriver import WebDriver
 from webdriver_manager.chrome import ChromeDriverManager
+
+def store_image(driver):
+    hash = hashlib.sha1()
+    hash.update(str(time.time()).encode("utf-8"))
+    filename = hash.hexdigest()[:8]
+    file_location = config.SCREENSHOT_DIR / f"{filename}.png"
+    return driver.save_screenshot(str(file_location)), f"{filename}.png"
 
 def main():
     for url in sys.argv:
@@ -37,21 +42,14 @@ def main():
         driver.get(url)
         time.sleep(3)
 
-        success = store_image(driver)
-        print(f"Operation status: {success}")
+        success, filename = store_image(driver)
+        if success:
+            print(f"Successful! Screenshot saved as {filename}.")
+        else:
+            print("Failed to take screenshot.")
 
         driver.close()
 
-
-def store_image(driver: WebDriver) -> bool:
-    hash = hashlib.sha1()
-    hash.update(str(time.time()).encode("utf-8"))
-    filename = hash.hexdigest()[:8]
-    file_location = SCREENSHOT_DIR / f"{filename}.png"
-    return driver.save_screenshot(str(file_location))
-
-
 if __name__ == "__main__":
     main()
-
 
